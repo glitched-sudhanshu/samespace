@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_for_you">
+
+  <fragment
+      android:id="@+id/navigation_for_you"
+      android:name="com.example.samespace.ui.forYou.ForYouFragment"
+      android:label="@string/title_for_you"
+      tools:layout="@layout/fragment_home" />
+
+  <fragment
+      android:id="@+id/navigation_top_tracks"
+      android:name="com.example.samespace.ui.topTracks.TopTracksFragment"
+      android:label="@string/title_top_tracks"
+      tools:layout="@layout/fragment_dashboard" />
+
+  <fragment
+      android:id="@+id/navigation_notifications"
+      android:name="com.example.samespace.ui.notifications.NotificationsFragment"
+      android:label="@string/title_notifications"
+      tools:layout="@layout/fragment_notifications" />
+</navigation>

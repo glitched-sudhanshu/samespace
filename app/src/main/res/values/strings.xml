@@ -1,0 +1,6 @@
+<resources>
+  <string name="app_name">SameSpace</string>
+  <string name="title_for_you">For You</string>
+  <string name="title_top_tracks">Top Tracks</string>
+  <string name="title_notifications">Notifications</string>
+</resources>
