@@ -1,4 +1,4 @@
-package com.example.samespace
+package com.example.samespace.ui
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -13,6 +13,8 @@ import kotlinx.coroutines.launch
 class MainViewModel(private val songsListRepo: SongsListRepo) : ViewModel() {
     private val _songsList = MutableLiveData<Resource<SongsList>>(Resource.Loading())
     val songsList: LiveData<Resource<SongsList>> = _songsList
+    private val _topTrackSongsList = MutableLiveData<Resource<SongsList>>(Resource.Loading())
+    val topTrackSongsList: LiveData<Resource<SongsList>> = _topTrackSongsList
 
     init {
         getSongsList()
@@ -22,7 +24,16 @@ class MainViewModel(private val songsListRepo: SongsListRepo) : ViewModel() {
         _songsList.value = Resource.Loading()
         viewModelScope.launch {
             try {
-                _songsList.value = songsListRepo.getSongsList()
+                val songsList = songsListRepo.getSongsList()
+                _songsList.value = songsList
+                _topTrackSongsList.value =
+                    Resource.Success(
+                        SongsList(
+                            songsList.data?.data?.filter {
+                                it.top_track
+                            } ?: emptyList(),
+                        ),
+                    )
             } catch (e: Exception) {
                 _songsList.value = Resource.Error("Something went wrong!")
             }

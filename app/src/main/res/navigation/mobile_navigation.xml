@@ -7,13 +7,7 @@
 
   <fragment
       android:id="@+id/navigation_for_you"
-      android:name="com.example.samespace.ui.forYou.ForYouFragment"
+      android:name="com.example.samespace.ui.SongsListFragment"
       android:label="@string/title_for_you"
-      tools:layout="@layout/fragment_for_you" />
-
-  <fragment
-      android:id="@+id/navigation_top_tracks"
-      android:name="com.example.samespace.ui.topTracks.TopTracksFragment"
-      android:label="@string/title_top_tracks"
-      tools:layout="@layout/fragment_top_tracks" />
+      tools:layout="@layout/fragment_songs_list" />
 </navigation>

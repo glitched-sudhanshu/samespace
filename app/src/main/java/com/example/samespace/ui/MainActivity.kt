@@ -1,4 +1,4 @@
-package com.example.samespace
+package com.example.samespace.ui
 
 import android.content.ComponentName
 import android.content.Context
@@ -6,17 +6,12 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.samespace.databinding.ActivityMainBinding
 import com.example.samespace.exoplayer.MusicService
-import com.example.samespace.models.Resource
 import com.example.samespace.network.Client
 import com.example.samespace.repo.SongsListRepo
-import com.example.samespace.ui.MainViewPagerAdapter
-import com.example.samespace.ui.forYou.ForYouFragment
-import com.example.samespace.ui.topTracks.TopTracksFragment
 import com.google.android.material.tabs.TabLayoutMediator
 
 class MainActivity : AppCompatActivity() {
@@ -49,26 +44,11 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setupViewPager()
-
-        viewModel.songsList.observe(this) {
-            when (it) {
-                is Resource.Loading -> {
-                    Log.d("api call", "onCreate: ")
-                }
-
-                is Resource.Success -> {
-//                    it.data?.data?.get(0)?.let { it1 -> musicService?.setSong(it1.url) }
-                }
-
-                is Resource.Error -> {
-                    Log.d("api call", "onCreate: ${it.message}")
-                }
-            }
-        }
     }
 
     private fun setupViewPager() {
-        val fragments = listOf(ForYouFragment(), TopTracksFragment())
+        val fragments =
+            listOf(SongsListFragment(isTopTrack = false), SongsListFragment(isTopTrack = true))
         val adapter = MainViewPagerAdapter(fragments, supportFragmentManager, lifecycle)
         binding.viewPager.adapter = adapter
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
