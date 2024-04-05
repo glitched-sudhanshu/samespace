@@ -9,16 +9,15 @@ import android.os.IBinder
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
 import com.example.samespace.databinding.ActivityMainBinding
 import com.example.samespace.exoplayer.MusicService
 import com.example.samespace.models.Resource
 import com.example.samespace.network.Client
 import com.example.samespace.repo.SongsListRepo
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.example.samespace.ui.MainViewPagerAdapter
+import com.example.samespace.ui.forYou.ForYouFragment
+import com.example.samespace.ui.topTracks.TopTracksFragment
+import com.google.android.material.tabs.TabLayoutMediator
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -45,20 +44,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val repository = SongsListRepo(Client.api)
         viewModel =
-            ViewModelProvider(this, MainViewModelFactory(repository))
-                .get(MainViewModel::class.java)
+            ViewModelProvider(this, MainViewModelFactory(repository))[MainViewModel::class.java]
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        val navView: BottomNavigationView = binding.navView
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        val appBarConfiguration =
-            AppBarConfiguration(
-                setOf(
-                    R.id.navigation_for_you,
-                    R.id.navigation_top_tracks,
-                ),
-            )
+        setupViewPager()
 
         viewModel.songsList.observe(this) {
             when (it) {
@@ -67,7 +57,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 is Resource.Success -> {
-                    it.data?.data?.get(0)?.let { it1 -> musicService?.setSong(it1.url) }
+//                    it.data?.data?.get(0)?.let { it1 -> musicService?.setSong(it1.url) }
                 }
 
                 is Resource.Error -> {
@@ -75,8 +65,18 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
+    }
+
+    private fun setupViewPager() {
+        val fragments = listOf(ForYouFragment(), TopTracksFragment())
+        val adapter = MainViewPagerAdapter(fragments, supportFragmentManager, lifecycle)
+        binding.viewPager.adapter = adapter
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
+            when (position) {
+                0 -> tab.text = "For You"
+                1 -> tab.text = "Top Tracks"
+            }
+        }.attach()
     }
 
     override fun onStart() {

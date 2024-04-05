@@ -9,17 +9,11 @@
       android:id="@+id/navigation_for_you"
       android:name="com.example.samespace.ui.forYou.ForYouFragment"
       android:label="@string/title_for_you"
-      tools:layout="@layout/fragment_home" />
+      tools:layout="@layout/fragment_for_you" />
 
   <fragment
       android:id="@+id/navigation_top_tracks"
       android:name="com.example.samespace.ui.topTracks.TopTracksFragment"
       android:label="@string/title_top_tracks"
-      tools:layout="@layout/fragment_dashboard" />
-
-  <fragment
-      android:id="@+id/navigation_notifications"
-      android:name="com.example.samespace.ui.notifications.NotificationsFragment"
-      android:label="@string/title_notifications"
-      tools:layout="@layout/fragment_notifications" />
+      tools:layout="@layout/fragment_top_tracks" />
 </navigation>
