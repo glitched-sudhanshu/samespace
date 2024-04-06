@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
-import android.media.browse.MediaBrowser.MediaItem
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -73,10 +72,31 @@ class MusicService : Service() {
         }
     }
 
+    fun playNextSong() {
+        exoPlayer.seekToNextMediaItem()
+    }
+
+    fun playPreviousSong() {
+        exoPlayer.seekToPreviousMediaItem()
+    }
+
     @OptIn(UnstableApi::class)
     fun setSong(url: String) {
         val mediaItem = androidx.media3.common.MediaItem.fromUri(url)
         exoPlayer.setMediaItem(mediaItem)
+        exoPlayer.prepare()
+        exoPlayer.play()
+    }
+
+    fun setSongs(
+        urls: List<String>,
+        resetPlaylist: Boolean = false,
+    ) {
+        val mediaItems =
+            urls.map {
+                androidx.media3.common.MediaItem.fromUri(it)
+            }
+        exoPlayer.setMediaItems(mediaItems, resetPlaylist)
         exoPlayer.prepare()
         exoPlayer.play()
     }

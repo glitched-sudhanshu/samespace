@@ -1,13 +1,11 @@
 package com.example.samespace.ui
 
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.IBinder
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import com.example.samespace.MyApp
 import com.example.samespace.databinding.ActivityMainBinding
 import com.example.samespace.exoplayer.MusicService
 import com.example.samespace.network.Client
@@ -16,23 +14,6 @@ import com.example.samespace.repo.SongsListRepo
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: MainViewModel
-    private var musicService: MusicService? = null
-    private var isBound = false
-    private val connection =
-        object : ServiceConnection {
-            override fun onServiceConnected(
-                name: ComponentName?,
-                service: IBinder?,
-            ) {
-                val binder = service as MusicService.MusicBinder
-                musicService = binder.getService()
-                isBound = true
-            }
-
-            override fun onServiceDisconnected(name: ComponentName?) {
-                isBound = false
-            }
-        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,14 +28,14 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         val intent = Intent(this, MusicService::class.java)
-        bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        bindService(intent, (application as MyApp).connection, Context.BIND_AUTO_CREATE)
     }
 
     override fun onStop() {
         super.onStop()
-        if (isBound) {
-            unbindService(connection)
-            isBound = false
+        if ((application as MyApp).isBound) {
+            unbindService((application as MyApp).connection)
+            (application as MyApp).isBound = false
         }
     }
 }

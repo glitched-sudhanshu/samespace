@@ -53,6 +53,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.samespace.MyApp
 import com.example.samespace.R
 import com.example.samespace.models.Resource
 import com.example.samespace.models.SongsList
@@ -138,6 +139,8 @@ class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
 
                                     LaunchedEffect(key1 = songPointer, block = {
                                         pagerState.animateScrollToPage(songPointer)
+                                        val songUrl = songs?.get(songPointer)?.url
+                                        (requireActivity().application as MyApp).musicService?.setSong(songUrl ?: "")
                                     })
 
                                     HorizontalPager(
@@ -193,7 +196,10 @@ class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
                                         )
                                     }
                                     Row(
-                                        modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .padding(top = 20.dp),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.SpaceAround,
                                     ) {
@@ -205,9 +211,10 @@ class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
                                                     id = R.color.white50,
                                                 ),
                                             modifier =
-                                                Modifier.clickable {
-                                                    viewModel.previousSong(isTopTracks)
-                                                }
+                                                Modifier
+                                                    .clickable {
+                                                        viewModel.previousSong(isTopTracks)
+                                                    }
                                                     .clip(CircleShape)
                                                     .size(50.dp),
                                         )
@@ -226,7 +233,14 @@ class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
                                                 Modifier
                                                     .size(50.dp)
                                                     .clip(CircleShape)
-                                                    .clickable { pauseSong = !pauseSong }
+                                                    .clickable {
+                                                        if (pauseSong) {
+                                                            (requireActivity().application as MyApp).musicService?.resumeMusic()
+                                                        } else {
+                                                            (requireActivity().application as MyApp).musicService?.pauseMusic()
+                                                        }
+                                                        pauseSong = !pauseSong
+                                                    }
                                                     .background(Color.White)
                                                     .padding(all = 5.dp),
                                         )
@@ -239,9 +253,10 @@ class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
                                                     id = R.color.white50,
                                                 ),
                                             modifier =
-                                                Modifier.clickable {
-                                                    viewModel.nextSong(isTopTracks)
-                                                }
+                                                Modifier
+                                                    .clickable {
+                                                        viewModel.nextSong(isTopTracks)
+                                                    }
                                                     .clip(CircleShape)
                                                     .size(50.dp),
                                         )
