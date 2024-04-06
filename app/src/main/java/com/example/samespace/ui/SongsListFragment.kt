@@ -47,7 +47,7 @@ class SongsListFragment(private val isTopTrack: Boolean) : Fragment() {
                     viewModel.setSongPosition(position = position, fromTopTrack = isTopTrack)
                     requireActivity().supportFragmentManager.beginTransaction().replace(
                         R.id.fragment_container,
-                        SongPlayerFragment(fromTopTracks = isTopTrack),
+                        SongPlayerFragment(isTopTracks = isTopTrack),
                     ).addToBackStack(SongPlayerFragment::class.java.name).commit()
                 }
             },

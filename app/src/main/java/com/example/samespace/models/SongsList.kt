@@ -7,7 +7,7 @@ data class SongsList(
 data class Song(
     val accent: String,
     val artist: String,
-    val cover: String,
+    var cover: String,
     val id: Int,
     val name: String,
     val status: String,
