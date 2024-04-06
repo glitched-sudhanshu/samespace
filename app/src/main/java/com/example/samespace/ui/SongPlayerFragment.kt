@@ -30,8 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -103,7 +101,7 @@ class SongPlayerFragment(val isTopTracks: Boolean, var fromBottom: Boolean) : Bo
                                     colors,
                                 ),
                         )
-                    var pauseSong by remember { mutableStateOf((requireActivity().application as MyApp).exoPlayer.isPlaying) }
+                    val songIsPlaying by viewModel.isPlaying.observeAsState(true)
                     Scaffold { internalPadding ->
                         Column(
                             modifier =
@@ -141,6 +139,7 @@ class SongPlayerFragment(val isTopTracks: Boolean, var fromBottom: Boolean) : Bo
                                         pagerState.animateScrollToPage(songPointer)
                                         if (!fromBottom) {
                                             songs?.get(songPointer)?.let {
+                                                viewModel.setIsPlaying(true)
                                                 viewModel.setCurrentSong(song = it)
                                                 val mediaItem =
                                                     androidx.media3.common.MediaItem.fromUri(it.url)
@@ -232,12 +231,12 @@ class SongPlayerFragment(val isTopTracks: Boolean, var fromBottom: Boolean) : Bo
                                         )
                                         Icon(
                                             imageVector =
-                                                if (pauseSong) {
-                                                    Icons.Default.PlayArrow
-                                                } else {
+                                                if (songIsPlaying) {
                                                     ImageVector.vectorResource(
                                                         R.drawable.ic_pause,
                                                     )
+                                                } else {
+                                                    Icons.Default.PlayArrow
                                                 },
                                             contentDescription = "play-pause-song",
                                             tint = Color.Black,
@@ -246,12 +245,12 @@ class SongPlayerFragment(val isTopTracks: Boolean, var fromBottom: Boolean) : Bo
                                                     .size(50.dp)
                                                     .clip(CircleShape)
                                                     .clickable {
-                                                        if (pauseSong) {
-                                                            (requireActivity().application as MyApp).exoPlayer.play()
-                                                        } else {
+                                                        if (songIsPlaying) {
                                                             (requireActivity().application as MyApp).exoPlayer.pause()
+                                                        } else {
+                                                            (requireActivity().application as MyApp).exoPlayer.play()
                                                         }
-                                                        pauseSong = !pauseSong
+                                                        viewModel.setIsPlaying(!songIsPlaying)
                                                     }
                                                     .background(Color.White)
                                                     .padding(all = 5.dp),

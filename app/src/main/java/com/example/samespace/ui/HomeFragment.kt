@@ -21,9 +21,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -89,7 +86,7 @@ class HomeFragment : Fragment() {
                 color = MaterialTheme.colorScheme.background,
             ) {
                 val song by viewModel.currentlyPlaying.observeAsState(null)
-                var pauseSong by remember { mutableStateOf((requireActivity().application as MyApp).exoPlayer.isPlaying) }
+                val songIsPlaying by viewModel.isPlaying.observeAsState(true)
                 val colors =
                     Color(
                         android.graphics.Color.parseColor(
@@ -142,12 +139,12 @@ class HomeFragment : Fragment() {
                     }
                     Icon(
                         imageVector =
-                            if (pauseSong) {
-                                Icons.Default.PlayArrow
-                            } else {
+                            if (songIsPlaying) {
                                 ImageVector.vectorResource(
                                     R.drawable.ic_pause,
                                 )
+                            } else {
+                                Icons.Default.PlayArrow
                             },
                         contentDescription = "play-pause-song",
                         tint = Color.Black,
@@ -156,12 +153,12 @@ class HomeFragment : Fragment() {
                                 .size(38.dp)
                                 .clip(CircleShape)
                                 .clickable {
-                                    if (pauseSong) {
-                                        (requireActivity().application as MyApp).exoPlayer.play()
-                                    } else {
+                                    if (songIsPlaying) {
                                         (requireActivity().application as MyApp).exoPlayer.pause()
+                                    } else {
+                                        (requireActivity().application as MyApp).exoPlayer.play()
                                     }
-                                    pauseSong = !pauseSong
+                                    viewModel.setIsPlaying(!songIsPlaying)
                                 }
                                 .background(Color.White)
                                 .padding(all = 5.dp),

@@ -20,6 +20,8 @@ class MainViewModel(private val songsListRepo: SongsListRepo) : ViewModel() {
     val songPointer: LiveData<Int> = _songPointer
     private val _currentlyPlaying = MutableLiveData<Resource<Song>>(null)
     val currentlyPlaying: LiveData<Resource<Song>> = _currentlyPlaying
+    private val _isPlaying = MutableLiveData(true)
+    val isPlaying: LiveData<Boolean> = _isPlaying
 
     init {
         getSongsList()
@@ -71,8 +73,12 @@ class MainViewModel(private val songsListRepo: SongsListRepo) : ViewModel() {
         }
     }
 
-    fun setCurrentSong(song: Song)  {
+    fun setCurrentSong(song: Song) {
         _currentlyPlaying.value = Resource.Success(song)
+    }
+
+    fun setIsPlaying(boolean: Boolean) {
+        _isPlaying.value = boolean
     }
 
     fun setSongPosition(
