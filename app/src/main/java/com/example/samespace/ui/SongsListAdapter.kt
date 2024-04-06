@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.example.samespace.databinding.RvSongItemBinding
 import com.example.samespace.models.Song
 
@@ -52,6 +53,7 @@ class SongsListAdapter : RecyclerView.Adapter<SongsListAdapter.ViewHolder>() {
             Glide.with(holder.itemView.context)
                 .load(song.cover)
                 .centerCrop()
+                .apply(RequestOptions.circleCropTransform())
                 .into(ivSong)
         }
         holder.itemView.setOnClickListener {
