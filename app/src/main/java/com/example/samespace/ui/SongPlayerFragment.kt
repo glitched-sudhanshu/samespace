@@ -140,7 +140,13 @@ class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
                                     LaunchedEffect(key1 = songPointer, block = {
                                         pagerState.animateScrollToPage(songPointer)
                                         val songUrl = songs?.get(songPointer)?.url
-                                        (requireActivity().application as MyApp).musicService?.setSong(songUrl ?: "")
+
+                                        val mediaItem = androidx.media3.common.MediaItem.fromUri(songUrl ?: "")
+                                        with((requireActivity().application as MyApp).exoPlayer) {
+                                            setMediaItem(mediaItem)
+                                            prepare()
+                                            play()
+                                        }
                                     })
 
                                     HorizontalPager(
@@ -235,9 +241,9 @@ class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
                                                     .clip(CircleShape)
                                                     .clickable {
                                                         if (pauseSong) {
-                                                            (requireActivity().application as MyApp).musicService?.resumeMusic()
+                                                            (requireActivity().application as MyApp).exoPlayer.play()
                                                         } else {
-                                                            (requireActivity().application as MyApp).musicService?.pauseMusic()
+                                                            (requireActivity().application as MyApp).exoPlayer.pause()
                                                         }
                                                         pauseSong = !pauseSong
                                                     }

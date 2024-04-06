@@ -13,10 +13,14 @@ import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import com.example.samespace.MyApp
+import com.example.samespace.exoplayer.Constants.NOTIFICATION_CHANNEL_ID
 
 class MusicService : Service() {
     private lateinit var exoPlayer: ExoPlayer
+
     private val binder = MusicBinder()
+    private val NOTIFICATION_ID = 121
 
     inner class MusicBinder : Binder() {
         fun getService(): MusicService = this@MusicService
@@ -28,8 +32,23 @@ class MusicService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        exoPlayer = ExoPlayer.Builder(baseContext).build()
-        createNotification()
+        exoPlayer = (application as MyApp).exoPlayer
+    }
+
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int,
+    ): Int {
+        if (intent?.action == Constants.ACTION.STARTFOREGROUND_ACTION) {
+            startForeground(NOTIFICATION_ID, createNotification())
+            exoPlayer.playWhenReady
+        } else if (intent?.action == Constants.ACTION.STOPFOREGROUND_ACTION) {
+            stopForeground(true)
+            exoPlayer.release()
+            stopSelf()
+        }
+        return START_NOT_STICKY
     }
 
     fun resumeMusic() {
@@ -101,7 +120,7 @@ class MusicService : Service() {
         exoPlayer.play()
     }
 
-    private fun createNotification() {
+    private fun createNotification(): Notification {
         val notificationManager =
             ContextCompat.getSystemService(baseContext, NotificationManager::class.java)
         val activityIntent =
@@ -112,14 +131,14 @@ class MusicService : Service() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val notificationChannel =
                     NotificationChannel(
-                        "121",
+                        NOTIFICATION_CHANNEL_ID,
                         "Music Service Channel",
                         NotificationManager.IMPORTANCE_HIGH,
                     )
                 notificationChannel.enableLights(true)
                 notificationChannel.enableVibration(false)
                 notificationManager?.createNotificationChannel(notificationChannel)
-                Notification.Builder(baseContext, "121")
+                Notification.Builder(baseContext, NOTIFICATION_CHANNEL_ID)
                     .setContentTitle("Music Player")
                     .setContentText("Playing music")
                     .setOngoing(true)
@@ -133,11 +152,20 @@ class MusicService : Service() {
                     .setSmallIcon(androidx.constraintlayout.widget.R.drawable.abc_btn_switch_to_on_mtrl_00012)
                     .setContentIntent(activityIntent)
             }
-        notificationManager?.notify(1234, builder.build())
+        return builder.build()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         exoPlayer.release()
     }
+}
+
+object Constants {
+    object ACTION {
+        const val STARTFOREGROUND_ACTION = "com.example.samespace.action.START_FOREGROUND"
+        const val STOPFOREGROUND_ACTION = "com.example.samespace.action.STOP_FOREGROUND"
+    }
+
+    const val NOTIFICATION_CHANNEL_ID = "musicplayer_channel"
 }
