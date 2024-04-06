@@ -5,7 +5,6 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.samespace.databinding.ActivityMainBinding
-import com.example.samespace.exoplayer.Constants
 import com.example.samespace.exoplayer.MusicService
 import com.example.samespace.network.Client
 import com.example.samespace.repo.SongsListRepo
@@ -27,14 +26,12 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         val serviceIntent = Intent(this, MusicService::class.java)
-        serviceIntent.action = Constants.ACTION.STARTFOREGROUND_ACTION
         startService(serviceIntent)
     }
 
     override fun onStop() {
         super.onStop()
         val serviceIntent = Intent(this, MusicService::class.java)
-        serviceIntent.action = Constants.ACTION.STOPFOREGROUND_ACTION
         startService(serviceIntent)
     }
 }

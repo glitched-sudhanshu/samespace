@@ -4,120 +4,135 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.Service
 import android.content.Intent
-import android.os.Binder
+import android.media.browse.MediaBrowser
+import android.media.session.MediaSession
+import android.media.session.PlaybackState
+import android.net.Uri
 import android.os.Build
-import android.os.IBinder
-import androidx.annotation.OptIn
+import android.os.Bundle
+import android.service.media.MediaBrowserService
 import androidx.core.content.ContextCompat
-import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
-import com.example.samespace.MyApp
 import com.example.samespace.exoplayer.Constants.NOTIFICATION_CHANNEL_ID
 
-class MusicService : Service() {
-    private lateinit var exoPlayer: ExoPlayer
+class MusicService : MediaBrowserService() {
+    private var mMediaSession: MediaSession? = null
+    private lateinit var mStateBuilder: PlaybackState.Builder
+    private var exoPlayer: ExoPlayer? = null
+    private val mMediaSessionCallback =
+        object : MediaSession.Callback() {
+            override fun onPlayFromUri(
+                uri: Uri?,
+                extras: Bundle?,
+            ) {
+                super.onPlayFromUri(uri, extras)
+            }
 
-    private val binder = MusicBinder()
-    private val NOTIFICATION_ID = 121
+            override fun onPause() {
+                super.onPause()
+                pause()
+            }
 
-    inner class MusicBinder : Binder() {
-        fun getService(): MusicService = this@MusicService
-    }
-
-    override fun onBind(p0: Intent?): IBinder? {
-        return binder
-    }
+            override fun onStop() {
+                super.onStop()
+                stop()
+            }
+        }
 
     override fun onCreate() {
         super.onCreate()
-        exoPlayer = (application as MyApp).exoPlayer
-    }
-
-    override fun onStartCommand(
-        intent: Intent?,
-        flags: Int,
-        startId: Int,
-    ): Int {
-        if (intent?.action == Constants.ACTION.STARTFOREGROUND_ACTION) {
-            startForeground(NOTIFICATION_ID, createNotification())
-            exoPlayer.playWhenReady
-        } else if (intent?.action == Constants.ACTION.STOPFOREGROUND_ACTION) {
-            stopForeground(true)
-            exoPlayer.release()
-            stopSelf()
-        }
-        return START_NOT_STICKY
-    }
-
-    fun resumeMusic() {
-        if (!exoPlayer.isPlaying) {
-            exoPlayer.play()
-        }
-    }
-
-    fun pauseMusic() {
-        if (exoPlayer.isPlaying) {
-            exoPlayer.pause()
-        }
-    }
-
-    fun togglePlayer() {
-        if (exoPlayer.isPlaying) {
-            exoPlayer.pause()
-        } else {
-            exoPlayer.play()
-        }
-    }
-
-    fun mute() {
-        if (exoPlayer.volume != 0f) {
-            exoPlayer.volume = 0f
-        }
-    }
-
-    fun unMute() {
-        if (exoPlayer.volume == 0f) {
-            exoPlayer.volume = 1f
-        }
-    }
-
-    fun toggleMute() {
-        if (exoPlayer.volume == 0f) {
-            exoPlayer.volume = 1f
-        } else {
-            exoPlayer.volume = 0f
-        }
-    }
-
-    fun playNextSong() {
-        exoPlayer.seekToNextMediaItem()
-    }
-
-    fun playPreviousSong() {
-        exoPlayer.seekToPreviousMediaItem()
-    }
-
-    @OptIn(UnstableApi::class)
-    fun setSong(url: String) {
-        val mediaItem = androidx.media3.common.MediaItem.fromUri(url)
-        exoPlayer.setMediaItem(mediaItem)
-        exoPlayer.prepare()
-        exoPlayer.play()
-    }
-
-    fun setSongs(
-        urls: List<String>,
-        resetPlaylist: Boolean = false,
-    ) {
-        val mediaItems =
-            urls.map {
-                androidx.media3.common.MediaItem.fromUri(it)
+        initializePlayer()
+        createNotification()
+        mMediaSession =
+            MediaSession(applicationContext, "tag for debugging").apply {
+                setFlags(
+                    MediaSession.FLAG_HANDLES_MEDIA_BUTTONS or
+                        MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS,
+                )
+                mStateBuilder =
+                    PlaybackState.Builder()
+                        .setActions(PlaybackState.ACTION_PLAY or PlaybackState.ACTION_PLAY_PAUSE)
+                setPlaybackState(mStateBuilder.build())
+                setCallback(mMediaSessionCallback)
+                setSessionToken(sessionToken)
+                isActive = true
             }
-        exoPlayer.setMediaItems(mediaItems, resetPlaylist)
-        exoPlayer.prepare()
-        exoPlayer.play()
+    }
+
+    private fun play(mediaItem: MediaItem) {
+        if (exoPlayer == null) initializePlayer()
+        exoPlayer?.apply {
+            setMediaItem(mediaItem)
+            prepare()
+            play()
+        }
+    }
+
+    private fun play() {
+        exoPlayer?.apply {
+            exoPlayer?.playWhenReady = true
+            updatePlaybackState(PlaybackState.STATE_PLAYING)
+            mMediaSession?.isActive = true
+        }
+    }
+
+    private fun initializePlayer() {
+        exoPlayer = ExoPlayer.Builder(applicationContext).build()
+    }
+
+    private fun pause() {
+        exoPlayer?.apply {
+            playWhenReady = false
+            if (playbackState == PlaybackState.STATE_PLAYING) {
+                updatePlaybackState(PlaybackState.STATE_PAUSED)
+            }
+        }
+    }
+
+    private fun stop() {
+        exoPlayer?.playWhenReady = false
+        exoPlayer?.release()
+        exoPlayer = null
+        updatePlaybackState(PlaybackState.STATE_NONE)
+        mMediaSession?.isActive = false
+        mMediaSession?.release()
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        stopSelf()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stop()
+    }
+
+    private fun updatePlaybackState(state: Int) {
+        mMediaSession?.setPlaybackState(
+            PlaybackState.Builder().setState(
+                state,
+                0L,
+                1.0f,
+            ).build(),
+        )
+    }
+
+    override fun onGetRoot(
+        p0: String,
+        p1: Int,
+        p2: Bundle?,
+    ): BrowserRoot? {
+        TODO("Not yet implemented")
+    }
+
+    override fun onLoadChildren(
+        p0: String,
+        p1: Result<MutableList<MediaBrowser.MediaItem>>,
+    ) {
+        TODO("Not yet implemented")
     }
 
     private fun createNotification(): Notification {
@@ -152,12 +167,9 @@ class MusicService : Service() {
                     .setSmallIcon(androidx.constraintlayout.widget.R.drawable.abc_btn_switch_to_on_mtrl_00012)
                     .setContentIntent(activityIntent)
             }
-        return builder.build()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        exoPlayer.release()
+        val notificationItem = builder.build()
+        notificationManager?.notify(1234, notificationItem)
+        return notificationItem
     }
 }
 
