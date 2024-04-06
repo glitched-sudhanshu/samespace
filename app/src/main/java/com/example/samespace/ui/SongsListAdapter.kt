@@ -10,6 +10,7 @@ import com.example.samespace.databinding.RvSongItemBinding
 import com.example.samespace.models.Song
 
 class SongsListAdapter : RecyclerView.Adapter<SongsListAdapter.ViewHolder>() {
+    private var onClickListener: OnClickListener? = null
     private val diffUtil =
         object : DiffUtil.ItemCallback<Song>() {
             override fun areItemsTheSame(
@@ -53,9 +54,23 @@ class SongsListAdapter : RecyclerView.Adapter<SongsListAdapter.ViewHolder>() {
                 .centerCrop()
                 .into(ivSong)
         }
+        holder.itemView.setOnClickListener {
+            onClickListener?.onClick(position, song)
+        }
     }
 
     override fun getItemCount() = listDiffer.currentList.size
 
     class ViewHolder(val binding: RvSongItemBinding) : RecyclerView.ViewHolder(binding.root)
+
+    fun setOnClickListener(onClickListener: OnClickListener) {
+        this.onClickListener = onClickListener
+    }
+
+    interface OnClickListener {
+        fun onClick(
+            position: Int,
+            song: Song,
+        )
+    }
 }

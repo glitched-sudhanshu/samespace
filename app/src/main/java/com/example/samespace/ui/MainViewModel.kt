@@ -15,6 +15,8 @@ class MainViewModel(private val songsListRepo: SongsListRepo) : ViewModel() {
     val songsList: LiveData<Resource<SongsList>> = _songsList
     private val _topTrackSongsList = MutableLiveData<Resource<SongsList>>(Resource.Loading())
     val topTrackSongsList: LiveData<Resource<SongsList>> = _topTrackSongsList
+    private val _songPointer = MutableLiveData(0)
+    val songPointer: LiveData<Int> = _songPointer
 
     init {
         getSongsList()
@@ -36,6 +38,48 @@ class MainViewModel(private val songsListRepo: SongsListRepo) : ViewModel() {
                     )
             } catch (e: Exception) {
                 _songsList.value = Resource.Error("Something went wrong!")
+            }
+        }
+    }
+
+    fun setSongPosition(
+        position: Int,
+        fromTopTrack: Boolean,
+    ) {
+        if (fromTopTrack) {
+            _songPointer.value =
+                position.rem(_topTrackSongsList.value?.data?.data?.size ?: 1)
+        } else {
+            _songPointer.value =
+                position.rem(_songsList.value?.data?.data?.size ?: 1)
+        }
+    }
+
+    fun nextSong(fromTopTrack: Boolean) {
+        if (fromTopTrack) {
+            _songPointer.value =
+                (_songPointer.value?.plus(1))?.rem(_topTrackSongsList.value?.data?.data?.size ?: 1)
+        } else {
+            _songPointer.value =
+                (_songPointer.value?.plus(1))?.rem(_songsList.value?.data?.data?.size ?: 1)
+        }
+    }
+
+    fun previousSong(fromTopTrack: Boolean) {
+        if (fromTopTrack) {
+            if (_songPointer.value == 0) {
+                _songPointer.value = (_topTrackSongsList.value?.data?.data?.size ?: 1).minus(1)
+            } else {
+                _songPointer.value =
+                    _songPointer.value?.minus(1)
+                        ?.rem(_topTrackSongsList.value?.data?.data?.size ?: 1)
+            }
+        } else {
+            if (_songPointer.value == 0) {
+                _songPointer.value = (_songsList.value?.data?.data?.size ?: 1).minus(1)
+            } else {
+                _songPointer.value =
+                    _songPointer.value?.minus(1)?.rem(_songsList.value?.data?.data?.size ?: 1)
             }
         }
     }

@@ -12,7 +12,6 @@ import com.example.samespace.databinding.ActivityMainBinding
 import com.example.samespace.exoplayer.MusicService
 import com.example.samespace.network.Client
 import com.example.samespace.repo.SongsListRepo
-import com.google.android.material.tabs.TabLayoutMediator
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -43,20 +42,6 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setupViewPager()
-    }
-
-    private fun setupViewPager() {
-        val fragments =
-            listOf(SongsListFragment(isTopTrack = false), SongsListFragment(isTopTrack = true))
-        val adapter = MainViewPagerAdapter(fragments, supportFragmentManager, lifecycle)
-        binding.viewPager.adapter = adapter
-        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
-            when (position) {
-                0 -> tab.text = "For You"
-                1 -> tab.text = "Top Tracks"
-            }
-        }.attach()
     }
 
     override fun onStart() {

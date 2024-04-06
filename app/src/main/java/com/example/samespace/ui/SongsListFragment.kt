@@ -9,8 +9,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.samespace.R
 import com.example.samespace.databinding.FragmentSongsListBinding
 import com.example.samespace.models.Resource
+import com.example.samespace.models.Song
 import com.example.samespace.models.SongsList
 
 class SongsListFragment(private val isTopTrack: Boolean) : Fragment() {
@@ -36,6 +38,20 @@ class SongsListFragment(private val isTopTrack: Boolean) : Fragment() {
         binding.rvSongsList.layoutManager =
             LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, false)
         binding.rvSongsList.adapter = songsListAdapter
+        songsListAdapter.setOnClickListener(
+            object : SongsListAdapter.OnClickListener {
+                override fun onClick(
+                    position: Int,
+                    song: Song,
+                ) {
+                    viewModel.setSongPosition(position = position, fromTopTrack = isTopTrack)
+                    requireActivity().supportFragmentManager.beginTransaction().replace(
+                        R.id.fragment_container,
+                        SongPlayerFragment(fromTopTracks = isTopTrack),
+                    ).addToBackStack(SongPlayerFragment::class.java.name).commit()
+                }
+            },
+        )
 
         if (isTopTrack) {
             viewModel.topTrackSongsList.observe(viewLifecycleOwner) {
