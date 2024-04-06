@@ -103,7 +103,7 @@ class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
                                     colors,
                                 ),
                         )
-                    var pauseSong by remember { mutableStateOf(false) }
+                    var pauseSong by remember { mutableStateOf((requireActivity().application as MyApp).exoPlayer.isPlaying) }
                     Scaffold { internalPadding ->
                         Column(
                             modifier =
@@ -139,13 +139,14 @@ class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
 
                                     LaunchedEffect(key1 = songPointer, block = {
                                         pagerState.animateScrollToPage(songPointer)
-                                        val songUrl = songs?.get(songPointer)?.url
-
-                                        val mediaItem = androidx.media3.common.MediaItem.fromUri(songUrl ?: "")
-                                        with((requireActivity().application as MyApp).exoPlayer) {
-                                            setMediaItem(mediaItem)
-                                            prepare()
-                                            play()
+                                        songs?.get(songPointer)?.let {
+                                            viewModel.setCurrentSong(song = it)
+                                            val mediaItem = androidx.media3.common.MediaItem.fromUri(it.url)
+                                            with((requireActivity().application as MyApp).exoPlayer) {
+                                                setMediaItem(mediaItem)
+                                                prepare()
+                                                play()
+                                            }
                                         }
                                     })
 

@@ -2,7 +2,9 @@ package com.example.samespace.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.BindingAdapter
 import androidx.lifecycle.ViewModelProvider
 import com.example.samespace.databinding.ActivityMainBinding
 import com.example.samespace.exoplayer.MusicService
@@ -34,4 +36,12 @@ class MainActivity : AppCompatActivity() {
         val serviceIntent = Intent(this, MusicService::class.java)
         startService(serviceIntent)
     }
+}
+
+@BindingAdapter("visibleIf")
+fun setVisibleIf(
+    view: View,
+    visible: Boolean,
+) {
+    view.visibility = if (visible) View.VISIBLE else View.GONE
 }

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.samespace.models.Resource
+import com.example.samespace.models.Song
 import com.example.samespace.models.SongsList
 import com.example.samespace.repo.SongsListRepo
 import kotlinx.coroutines.launch
@@ -17,6 +18,8 @@ class MainViewModel(private val songsListRepo: SongsListRepo) : ViewModel() {
     val topTrackSongsList: LiveData<Resource<SongsList>> = _topTrackSongsList
     private val _songPointer = MutableLiveData(0)
     val songPointer: LiveData<Int> = _songPointer
+    private val _currentlyPlaying = MutableLiveData<Resource<Song>>(null)
+    val currentlyPlaying: LiveData<Resource<Song>> = _currentlyPlaying
 
     init {
         getSongsList()
@@ -66,6 +69,10 @@ class MainViewModel(private val songsListRepo: SongsListRepo) : ViewModel() {
                 resource
             }
         }
+    }
+
+    fun setCurrentSong(song: Song)  {
+        _currentlyPlaying.value = Resource.Success(song)
     }
 
     fun setSongPosition(

@@ -4,19 +4,55 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import coil.compose.AsyncImage
+import com.example.samespace.MyApp
+import com.example.samespace.R
 import com.example.samespace.databinding.FragmentHomeBinding
 import com.google.android.material.tabs.TabLayoutMediator
 
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
+    private val viewModel: MainViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View? {
+    ): View {
         _binding = FragmentHomeBinding.inflate(layoutInflater, container, false)
         setupViewPager()
         return binding.root
@@ -36,6 +72,94 @@ class HomeFragment : Fragment() {
                 1 -> tab.text = "Top Tracks"
             }
         }.attach()
+
+        setupPlayerView()
+    }
+
+    private fun setupPlayerView() {
+        binding.showPlayerView = (viewModel.currentlyPlaying.value != null)
+        binding.playerView.setContent {
+            Surface(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                color = MaterialTheme.colorScheme.background,
+            ) {
+                val song by viewModel.currentlyPlaying.observeAsState(null)
+                var pauseSong by remember { mutableStateOf((requireActivity().application as MyApp).exoPlayer.isPlaying) }
+                val colors =
+                    Color(
+                        android.graphics.Color.parseColor(
+                            song?.data?.accent ?: "#000000",
+                        ),
+                    )
+                val gradient =
+                    Brush.horizontalGradient(
+                        colors =
+                            listOf(
+                                colors.copy(alpha = .7f),
+                                colors.copy(alpha = .90f),
+                                colors,
+                            ),
+                    )
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier =
+                        Modifier.background(gradient).padding(all = 16.dp),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        AsyncImage(
+                            model = song?.data?.cover,
+                            contentDescription = "cover-image-current",
+                            modifier =
+                                Modifier
+                                    .size(45.dp)
+                                    .clip(
+                                        CircleShape,
+                                    ),
+                            contentScale = ContentScale.Crop,
+                        )
+                        Text(
+                            text = song?.data?.name ?: "",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.W500,
+                        )
+                    }
+                    Icon(
+                        imageVector =
+                            if (pauseSong) {
+                                Icons.Default.PlayArrow
+                            } else {
+                                ImageVector.vectorResource(
+                                    R.drawable.ic_pause,
+                                )
+                            },
+                        contentDescription = "play-pause-song",
+                        tint = Color.Black,
+                        modifier =
+                            Modifier
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .clickable {
+                                    if (pauseSong) {
+                                        (requireActivity().application as MyApp).exoPlayer.play()
+                                    } else {
+                                        (requireActivity().application as MyApp).exoPlayer.pause()
+                                    }
+                                    pauseSong = !pauseSong
+                                }
+                                .background(Color.White)
+                                .padding(all = 5.dp),
+                    )
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {
