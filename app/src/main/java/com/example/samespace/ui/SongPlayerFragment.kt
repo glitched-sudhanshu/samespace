@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.colorResource
@@ -38,22 +41,50 @@ class SongPlayerFragment(val fromTopTracks: Boolean) : Fragment() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
                 ) {
+                    val songPointer by viewModel.songPointer.observeAsState(0)
+                    val songsList by if (fromTopTracks) {
+                        viewModel.topTrackSongsList.observeAsState()
+                    } else {
+                        viewModel.songsList.observeAsState()
+                    }
+                    val colors by animateColorAsState(
+                        targetValue =
+                            if (songsList is Resource.Success<SongsList>) {
+                                Color(
+                                    android.graphics.Color.parseColor(
+                                        songsList?.data?.data?.get(songPointer)?.accent ?: "#000000",
+                                    ),
+                                )
+                            } else {
+                                Color.Black
+                            },
+                        label = "bg-color",
+                    )
+                    val gradient =
+                        Brush.linearGradient(
+                            colors =
+                                listOf(
+                                    colors,
+                                    colors.copy(alpha = .8f),
+                                    colors.copy(alpha = .6f),
+                                ),
+                        )
                     Scaffold { internalPadding ->
-                        val songPointer by viewModel.songPointer.observeAsState(0)
-                        val songsList by if (fromTopTracks) {
-                            viewModel.topTrackSongsList.observeAsState()
-                        } else {
-                            viewModel.songsList.observeAsState()
-                        }
-
-                        Column(modifier = Modifier.padding(internalPadding)) {
+                        Column(
+                            modifier =
+                                Modifier.padding(internalPadding).fillMaxSize()
+                                    .background(gradient),
+                        ) {
                             when (songsList) {
                                 is Resource.Loading -> {
                                     Text(text = "Loading", color = Color.Black)
                                 }
 
                                 is Resource.Success<SongsList> -> {
-                                    Text(text = songsList?.data?.data?.get(songPointer)?.name.toString(), color = Color.Black)
+                                    Text(
+                                        text = songsList?.data?.data?.get(songPointer)?.name.toString(),
+                                        color = Color.Black,
+                                    )
                                 }
 
                                 is Resource.Error -> {
