@@ -21,9 +21,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,10 +40,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -98,9 +97,9 @@ class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
                         Brush.linearGradient(
                             colors =
                                 listOf(
+                                    colors.copy(alpha = .7f),
+                                    colors.copy(alpha = .90f),
                                     colors,
-                                    colors.copy(alpha = .8f),
-                                    colors.copy(alpha = .6f),
                                 ),
                         )
                     var pauseSong by remember { mutableStateOf(false) }
@@ -110,8 +109,10 @@ class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
                                 Modifier
                                     .padding(internalPadding)
                                     .fillMaxSize()
-                                    .background(gradient),
+                                    .background(gradient)
+                                    .padding(vertical = 40.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.SpaceAround,
                         ) {
                             when (songsList) {
                                 is Resource.Loading -> {
@@ -139,9 +140,13 @@ class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
                                         pagerState.animateScrollToPage(songPointer)
                                     })
 
-                                    HorizontalPager(state = pagerState, key = {
-                                        songs?.get(it)?.id ?: "121"
-                                    }, modifier = Modifier.fillMaxWidth(.75f)) { index ->
+                                    HorizontalPager(
+                                        state = pagerState,
+                                        key = {
+                                            songs?.get(it)?.id ?: "121"
+                                        },
+                                        modifier = Modifier.fillMaxWidth(.75f),
+                                    ) { index ->
                                         val pageOffset =
                                             (pagerState.currentPage - index) + pagerState.currentPageOffsetFraction
                                         val imageSize by animateFloatAsState(
@@ -166,30 +171,34 @@ class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
                                         )
                                     }
 
-                                    Text(
-                                        text = songs?.get(songPointer)?.name ?: "",
-                                        color = Color.White,
-                                        fontSize = 20.sp,
-                                        fontWeight = FontWeight.W500,
-                                        modifier = Modifier.padding(vertical = 5.dp),
-                                    )
-                                    Text(
-                                        text = songs?.get(songPointer)?.artist ?: "",
-                                        color =
-                                            colorResource(
-                                                id = R.color.white50,
-                                            ),
-                                        fontSize = 17.sp,
-                                        fontWeight = FontWeight.W400,
-                                        modifier = Modifier.padding(bottom = 10.dp),
-                                    )
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier.padding(vertical = 10.dp),
+                                    ) {
+                                        Text(
+                                            text = songs?.get(songPointer)?.name ?: "",
+                                            color = Color.White,
+                                            fontSize = 20.sp,
+                                            fontWeight = FontWeight.W500,
+                                        )
+                                        Text(
+                                            text = songs?.get(songPointer)?.artist ?: "",
+                                            color =
+                                                colorResource(
+                                                    id = R.color.white50,
+                                                ),
+                                            fontSize = 17.sp,
+                                            fontWeight = FontWeight.W400,
+                                        )
+                                    }
                                     Row(
                                         modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.SpaceAround,
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Default.ArrowBack,
+                                            imageVector = ImageVector.vectorResource(R.drawable.ic_back),
                                             contentDescription = "prev-song",
                                             tint =
                                                 colorResource(
@@ -198,22 +207,32 @@ class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
                                             modifier =
                                                 Modifier.clickable {
                                                     viewModel.previousSong(isTopTracks)
-                                                },
+                                                }
+                                                    .clip(CircleShape)
+                                                    .size(50.dp),
                                         )
                                         Icon(
-                                            imageVector = if (pauseSong) Icons.Default.PlayArrow else Icons.Default.MailOutline,
+                                            imageVector =
+                                                if (pauseSong) {
+                                                    Icons.Default.PlayArrow
+                                                } else {
+                                                    ImageVector.vectorResource(
+                                                        R.drawable.ic_pause,
+                                                    )
+                                                },
                                             contentDescription = "play-pause-song",
                                             tint = Color.Black,
                                             modifier =
                                                 Modifier
-                                                    .clickable { pauseSong = !pauseSong }
+                                                    .size(50.dp)
                                                     .clip(CircleShape)
+                                                    .clickable { pauseSong = !pauseSong }
                                                     .background(Color.White)
                                                     .padding(all = 5.dp),
                                         )
 
                                         Icon(
-                                            imageVector = Icons.Default.ArrowForward,
+                                            imageVector = ImageVector.vectorResource(R.drawable.ic_next),
                                             contentDescription = "next-song",
                                             tint =
                                                 colorResource(
@@ -222,7 +241,9 @@ class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
                                             modifier =
                                                 Modifier.clickable {
                                                     viewModel.nextSong(isTopTracks)
-                                                },
+                                                }
+                                                    .clip(CircleShape)
+                                                    .size(50.dp),
                                         )
                                     }
                                 }
