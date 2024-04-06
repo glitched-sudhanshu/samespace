@@ -77,7 +77,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupPlayerView() {
-        binding.showPlayerView = (viewModel.currentlyPlaying.value != null)
+        viewModel.currentlyPlaying.observe(viewLifecycleOwner) {
+            binding.showPlayerView = (it != null)
+        }
         binding.playerView.setContent {
             Surface(
                 modifier =
@@ -107,7 +109,14 @@ class HomeFragment : Fragment() {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                     modifier =
-                        Modifier.background(gradient).padding(all = 16.dp),
+                        Modifier.background(gradient).clickable {
+                            val fragment =
+                                SongPlayerFragment(isTopTracks = false, true)
+                            fragment.show(
+                                requireActivity().supportFragmentManager,
+                                "SongPlayerFragment",
+                            )
+                        }.padding(all = 16.dp),
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

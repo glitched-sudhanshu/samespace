@@ -9,7 +9,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.samespace.R
 import com.example.samespace.databinding.FragmentSongsListBinding
 import com.example.samespace.models.Resource
 import com.example.samespace.models.Song
@@ -45,10 +44,9 @@ class SongsListFragment(private val isTopTrack: Boolean) : Fragment() {
                     song: Song,
                 ) {
                     viewModel.setSongPosition(position = position, fromTopTrack = isTopTrack)
-                    requireActivity().supportFragmentManager.beginTransaction().replace(
-                        R.id.fragment_container,
-                        SongPlayerFragment(isTopTracks = isTopTrack),
-                    ).addToBackStack(SongPlayerFragment::class.java.name).commit()
+                    val fragment =
+                        SongPlayerFragment(isTopTracks = isTopTrack, false)
+                    fragment.show(requireActivity().supportFragmentManager, "SongPlayerFragment")
                 }
             },
         )

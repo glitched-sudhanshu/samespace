@@ -49,7 +49,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -57,9 +56,10 @@ import com.example.samespace.MyApp
 import com.example.samespace.R
 import com.example.samespace.models.Resource
 import com.example.samespace.models.SongsList
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.flow.distinctUntilChanged
 
-class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
+class SongPlayerFragment(val isTopTracks: Boolean, var fromBottom: Boolean) : BottomSheetDialogFragment() {
     private val viewModel: MainViewModel by activityViewModels()
 
     @OptIn(ExperimentalFoundationApi::class)
@@ -139,14 +139,19 @@ class SongPlayerFragment(val isTopTracks: Boolean) : Fragment() {
 
                                     LaunchedEffect(key1 = songPointer, block = {
                                         pagerState.animateScrollToPage(songPointer)
-                                        songs?.get(songPointer)?.let {
-                                            viewModel.setCurrentSong(song = it)
-                                            val mediaItem = androidx.media3.common.MediaItem.fromUri(it.url)
-                                            with((requireActivity().application as MyApp).exoPlayer) {
-                                                setMediaItem(mediaItem)
-                                                prepare()
-                                                play()
+                                        if (!fromBottom) {
+                                            songs?.get(songPointer)?.let {
+                                                viewModel.setCurrentSong(song = it)
+                                                val mediaItem =
+                                                    androidx.media3.common.MediaItem.fromUri(it.url)
+                                                with((requireActivity().application as MyApp).exoPlayer) {
+                                                    setMediaItem(mediaItem)
+                                                    prepare()
+                                                    play()
+                                                }
                                             }
+                                        } else {
+                                            fromBottom = false
                                         }
                                     })
 
