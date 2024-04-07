@@ -342,10 +342,10 @@ class SongPlayerFragment(val isTopTracks: Boolean, private var fromBottom: Boole
                     ),
                 modifier =
                     Modifier
+                        .clip(CircleShape)
                         .clickable {
                             viewModel.previousSong(isTopTracks)
                         }
-                        .clip(CircleShape)
                         .size(50.dp),
             )
             Icon(
@@ -384,10 +384,10 @@ class SongPlayerFragment(val isTopTracks: Boolean, private var fromBottom: Boole
                     ),
                 modifier =
                     Modifier
+                        .clip(CircleShape)
                         .clickable {
                             viewModel.nextSong(isTopTracks)
                         }
-                        .clip(CircleShape)
                         .size(50.dp),
             )
         }
