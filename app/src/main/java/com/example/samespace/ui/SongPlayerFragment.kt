@@ -1,9 +1,11 @@
 package com.example.samespace.ui
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -43,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -66,6 +69,8 @@ import com.example.samespace.R
 import com.example.samespace.models.Resource
 import com.example.samespace.models.SongsList
 import com.example.samespace.shimmerBrush
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -122,8 +127,7 @@ class SongPlayerFragment(val isTopTracks: Boolean, private var fromBottom: Boole
                                 Modifier
                                     .padding(internalPadding)
                                     .fillMaxSize()
-                                    .background(gradient)
-                                    .padding(vertical = 40.dp),
+                                    .background(gradient),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.SpaceAround,
                         ) {
@@ -133,11 +137,47 @@ class SongPlayerFragment(val isTopTracks: Boolean, private var fromBottom: Boole
                                 }
 
                                 is Resource.Success<SongsList> -> {
-                                    SongPlayerScreen(
-                                        songPointer = songPointer,
-                                        isSongPlaying = isSongPlaying,
-                                        songsList = songsList as Resource.Success<SongsList>,
-                                    )
+                                    Box {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                            AsyncImage(
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxSize()
+                                                        .blur(radius = 12.dp)
+                                                        .padding(16.dp),
+                                                model =
+                                                    ImageRequest.Builder(LocalContext.current)
+                                                        .data(
+                                                            "https://cms.samespace.com/assets/${
+                                                                songsList?.data?.data?.get(
+                                                                    songPointer,
+                                                                )?.cover
+                                                            }",
+                                                        ).build(),
+                                                placeholder = painterResource(id = R.drawable.bg_gradient),
+                                                contentDescription = "cover-image",
+                                                contentScale = ContentScale.Crop,
+                                            )
+                                            Box(
+                                                modifier =
+                                                    Modifier.fillMaxSize()
+                                                        .background(color = Color.Black.copy(alpha = .4f)),
+                                            )
+                                        }
+                                        Column(
+                                            modifier =
+                                                Modifier.fillMaxSize()
+                                                    .padding(vertical = 40.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.SpaceAround,
+                                        ) {
+                                            SongPlayerScreen(
+                                                songPointer = songPointer,
+                                                isSongPlaying = isSongPlaying,
+                                                songsList = songsList as Resource.Success<SongsList>,
+                                            )
+                                        }
+                                    }
                                 }
 
                                 is Resource.Error -> {
@@ -153,88 +193,115 @@ class SongPlayerFragment(val isTopTracks: Boolean, private var fromBottom: Boole
         }
     }
 
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
+        super.onViewCreated(view, savedInstanceState)
+        dialog?.setOnShowListener { dialog ->
+            val d = dialog as BottomSheetDialog
+            val bottomSheet = d.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet) as FrameLayout
+            val bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+            bottomSheetBehavior.peekHeight = BottomSheetBehavior.PEEK_HEIGHT_AUTO
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+        }
+    }
+
     @Composable
     fun SongPlayerShimmerView() {
-        Box(
-            modifier =
-                Modifier
-                    .size(400.dp)
-                    .background(shimmerBrush())
-                    .clip(RoundedCornerShape(10)),
-        )
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(vertical = 10.dp),
-        ) {
-            Box(
-                modifier =
-                    Modifier
-                        .width(100.dp)
-                        .height(40.dp)
-                        .background(shimmerBrush())
-                        .clip(RoundedCornerShape(5)),
-            )
-            Box(
-                modifier =
-                    Modifier
-                        .width(70.dp)
-                        .height(35.dp)
-                        .background(shimmerBrush())
-                        .clip(RoundedCornerShape(5)),
-            )
-        }
-        Box(
-            modifier =
-                Modifier.fillMaxWidth(.95f).height(2.dp).background(shimmerBrush()).clip(
-                    RoundedCornerShape(50),
-                ),
-        )
-
-        Row(
             modifier =
                 Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceAround,
+                    .fillMaxSize()
+                    .padding(40.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceAround,
         ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.ic_back),
-                contentDescription = "prev-song",
-                tint =
-                    colorResource(
-                        id = R.color.white50,
-                    ),
+            Box(
                 modifier =
                     Modifier
-                        .clip(CircleShape)
-                        .size(50.dp),
+                        .size(400.dp)
+                        .background(shimmerBrush())
+                        .clip(RoundedCornerShape(10)),
             )
-            Icon(
-                imageVector = Icons.Default.PlayArrow,
-                contentDescription = "pause-song",
-                tint = Color.Black,
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(vertical = 10.dp),
+            ) {
+                Box(
+                    modifier =
+                        Modifier
+                            .width(100.dp)
+                            .height(40.dp)
+                            .background(shimmerBrush())
+                            .clip(RoundedCornerShape(5)),
+                )
+                Box(
+                    modifier =
+                        Modifier
+                            .width(70.dp)
+                            .height(35.dp)
+                            .background(shimmerBrush())
+                            .clip(RoundedCornerShape(5)),
+                )
+            }
+            Box(
                 modifier =
                     Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(Color.White)
-                        .padding(all = 5.dp),
+                        .fillMaxWidth(.95f)
+                        .height(2.dp)
+                        .background(shimmerBrush())
+                        .clip(
+                            RoundedCornerShape(50),
+                        ),
             )
 
-            Icon(
-                imageVector = ImageVector.vectorResource(R.drawable.ic_next),
-                contentDescription = "next-song",
-                tint =
-                    colorResource(
-                        id = R.color.white50,
-                    ),
+            Row(
                 modifier =
                     Modifier
-                        .clip(CircleShape)
-                        .size(50.dp),
-            )
+                        .fillMaxWidth()
+                        .padding(top = 20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround,
+            ) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.ic_back),
+                    contentDescription = "prev-song",
+                    tint =
+                        colorResource(
+                            id = R.color.white50,
+                        ),
+                    modifier =
+                        Modifier
+                            .clip(CircleShape)
+                            .size(50.dp),
+                )
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "pause-song",
+                    tint = Color.Black,
+                    modifier =
+                        Modifier
+                            .size(50.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
+                            .padding(all = 5.dp),
+                )
+
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.ic_next),
+                    contentDescription = "next-song",
+                    tint =
+                        colorResource(
+                            id = R.color.white50,
+                        ),
+                    modifier =
+                        Modifier
+                            .clip(CircleShape)
+                            .size(50.dp),
+                )
+            }
         }
     }
 
@@ -244,6 +311,7 @@ class SongPlayerFragment(val isTopTracks: Boolean, private var fromBottom: Boole
         songPointer: Int,
         isSongPlaying: Boolean,
         songsList: Resource.Success<SongsList>,
+        modifier: Modifier = Modifier,
     ) {
         val songs =
             songsList.data?.data
@@ -285,7 +353,7 @@ class SongPlayerFragment(val isTopTracks: Boolean, private var fromBottom: Boole
             key = {
                 songs?.get(it)?.id ?: "121"
             },
-            modifier = Modifier.fillMaxWidth(.75f),
+            modifier = modifier.fillMaxWidth(.75f),
         ) { index ->
             val pageOffset =
                 (pagerState.currentPage - index) + pagerState.currentPageOffsetFraction
