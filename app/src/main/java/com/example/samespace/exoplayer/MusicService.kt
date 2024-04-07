@@ -13,8 +13,8 @@ import android.os.Build
 import android.os.Bundle
 import android.service.media.MediaBrowserService
 import androidx.core.content.ContextCompat
-import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
+import com.example.samespace.R
 import com.example.samespace.exoplayer.Constants.NOTIFICATION_CHANNEL_ID
 
 class MusicService : MediaBrowserService() {
@@ -61,23 +61,6 @@ class MusicService : MediaBrowserService() {
             }
     }
 
-    private fun play(mediaItem: MediaItem) {
-        if (exoPlayer == null) initializePlayer()
-        exoPlayer?.apply {
-            setMediaItem(mediaItem)
-            prepare()
-            play()
-        }
-    }
-
-    private fun play() {
-        exoPlayer?.apply {
-            exoPlayer?.playWhenReady = true
-            updatePlaybackState(PlaybackState.STATE_PLAYING)
-            mMediaSession?.isActive = true
-        }
-    }
-
     private fun initializePlayer() {
         exoPlayer = ExoPlayer.Builder(applicationContext).build()
     }
@@ -108,6 +91,7 @@ class MusicService : MediaBrowserService() {
     override fun onDestroy() {
         super.onDestroy()
         stop()
+        stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
     private fun updatePlaybackState(state: Int) {
@@ -157,14 +141,16 @@ class MusicService : MediaBrowserService() {
                     .setContentTitle("Music Player")
                     .setContentText("Playing music")
                     .setOngoing(true)
-                    .setSmallIcon(androidx.constraintlayout.widget.R.drawable.abc_btn_switch_to_on_mtrl_00012)
+                    .setOnlyAlertOnce(true)
+                    .setSmallIcon(R.drawable.ic_app_icon)
                     .setContentIntent(activityIntent)
             } else {
                 Notification.Builder(baseContext)
                     .setContentTitle("Music Player")
                     .setContentText("Playing music")
                     .setOngoing(true)
-                    .setSmallIcon(androidx.constraintlayout.widget.R.drawable.abc_btn_switch_to_on_mtrl_00012)
+                    .setOnlyAlertOnce(true)
+                    .setSmallIcon(R.drawable.ic_app_icon)
                     .setContentIntent(activityIntent)
             }
         val notificationItem = builder.build()
@@ -174,10 +160,5 @@ class MusicService : MediaBrowserService() {
 }
 
 object Constants {
-    object ACTION {
-        const val STARTFOREGROUND_ACTION = "com.example.samespace.action.START_FOREGROUND"
-        const val STOPFOREGROUND_ACTION = "com.example.samespace.action.STOP_FOREGROUND"
-    }
-
     const val NOTIFICATION_CHANNEL_ID = "musicplayer_channel"
 }

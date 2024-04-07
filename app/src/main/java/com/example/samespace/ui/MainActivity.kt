@@ -32,6 +32,6 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         val serviceIntent = Intent(this, MusicService::class.java)
-        startService(serviceIntent)
+        stopService(serviceIntent)
     }
 }
