@@ -9,6 +9,7 @@ import com.example.samespace.models.Resource
 import com.example.samespace.models.Song
 import com.example.samespace.models.SongsList
 import com.example.samespace.repo.SongsListRepo
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainViewModel(private val songsListRepo: SongsListRepo) : ViewModel() {
@@ -30,6 +31,8 @@ class MainViewModel(private val songsListRepo: SongsListRepo) : ViewModel() {
     private fun getSongsList() {
         _songsList.value = Resource.Loading()
         viewModelScope.launch {
+            // added delay to to show loading views
+            delay(2000)
             try {
                 val songsList = addCovers(songsListRepo.getSongsList())
                 _songsList.value = songsList

@@ -5,6 +5,25 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,6 +32,7 @@ import com.example.samespace.databinding.FragmentSongsListBinding
 import com.example.samespace.models.Resource
 import com.example.samespace.models.Song
 import com.example.samespace.models.SongsList
+import com.example.samespace.shimmerBrush
 
 class SongsListFragment(private val isTopTrack: Boolean) : Fragment() {
     private var _binding: FragmentSongsListBinding? = null
@@ -65,11 +85,18 @@ class SongsListFragment(private val isTopTrack: Boolean) : Fragment() {
     private fun handleSongResponse(response: Resource<SongsList>) {
         when (response) {
             is Resource.Loading -> {
-                // show loading
-                Log.d("api call", "onCreate: ")
+                binding.isLoading = true
+                binding.cvLoading.apply {
+                    setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                    setContent {
+                        SongsListShimmer()
+                    }
+                }
             }
 
             is Resource.Success -> {
+                binding.isLoading = false
+                binding.cvLoading.disposeComposition()
                 if (response.data?.data != null) {
                     songsListAdapter.saveData(response.data.data)
                 } else {
@@ -78,8 +105,56 @@ class SongsListFragment(private val isTopTrack: Boolean) : Fragment() {
             }
 
             is Resource.Error -> {
+                binding.isLoading = false
+                binding.cvLoading.disposeComposition()
                 // show error
                 Log.d("api call", "onCreate: ${response.message}")
+            }
+        }
+    }
+
+    @Composable
+    fun SongsListShimmer() {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            repeat(5) {
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .padding(end = 10.dp)
+                                .size(70.dp)
+                                .clip(CircleShape)
+                                .background(shimmerBrush()),
+                    )
+                    Column {
+                        Box(
+                            modifier =
+                                Modifier
+                                    .padding(top = 10.dp, bottom = 20.dp)
+                                    .width(100.dp)
+                                    .height(20.dp)
+                                    .clip(RoundedCornerShape(15))
+                                    .background(shimmerBrush()),
+                        )
+                        Box(
+                            modifier =
+                                Modifier
+                                    .width(80.dp)
+                                    .height(15.dp)
+                                    .clip(RoundedCornerShape(15))
+                                    .background(shimmerBrush()),
+                        )
+                    }
+                }
             }
         }
     }

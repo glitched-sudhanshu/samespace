@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -83,8 +84,9 @@ class HomeFragment : Fragment() {
         viewModel.currentlyPlaying.observe(viewLifecycleOwner) {
             binding.showPlayerView = (it != null)
         }
-        binding.playerView.setContent {
-            BottomPlayerView()
+        binding.playerView.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent { BottomPlayerView() }
         }
     }
 
