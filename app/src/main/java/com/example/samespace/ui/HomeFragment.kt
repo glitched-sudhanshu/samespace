@@ -4,6 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.vectorResource
@@ -113,17 +119,37 @@ class HomeFragment : Fragment() {
                                 requireActivity().supportFragmentManager,
                                 "SongPlayerFragment",
                             )
-                        }.padding(all = 16.dp),
+                        }.padding(horizontal = 16.dp, vertical = 8.dp),
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
+                        val infiniteTransition = rememberInfiniteTransition(label = "rotate-anim")
+                        val angle by infiniteTransition.animateFloat(
+                            initialValue = 0F,
+                            targetValue = 360F,
+                            animationSpec =
+                                infiniteRepeatable(
+                                    animation = tween(2000, easing = LinearEasing),
+                                ),
+                            label = "rotate-angle",
+                        )
                         AsyncImage(
                             model = song?.data?.cover,
                             contentDescription = "cover-image-current",
                             modifier =
                                 Modifier
+                                    .then(
+                                        if (songIsPlaying) {
+                                            Modifier
+                                                .graphicsLayer {
+                                                    rotationZ = angle
+                                                }
+                                        } else {
+                                            Modifier
+                                        },
+                                    )
                                     .size(45.dp)
                                     .clip(
                                         CircleShape,
