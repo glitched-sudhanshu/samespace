@@ -11,15 +11,19 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
@@ -55,6 +59,7 @@ import com.example.samespace.MyApp
 import com.example.samespace.R
 import com.example.samespace.models.Resource
 import com.example.samespace.models.SongsList
+import com.example.samespace.shimmerBrush
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.flow.distinctUntilChanged
 
@@ -117,7 +122,7 @@ class SongPlayerFragment(val isTopTracks: Boolean, private var fromBottom: Boole
                         ) {
                             when (songsList) {
                                 is Resource.Loading -> {
-                                    Text(text = "Loading", color = Color.Black)
+                                    SongPlayerShimmerView()
                                 }
 
                                 is Resource.Success<SongsList> -> {
@@ -138,6 +143,91 @@ class SongPlayerFragment(val isTopTracks: Boolean, private var fromBottom: Boole
                     }
                 }
             }
+        }
+    }
+
+    @Composable
+    fun SongPlayerShimmerView() {
+        Box(
+            modifier =
+                Modifier
+                    .size(400.dp)
+                    .background(shimmerBrush())
+                    .clip(RoundedCornerShape(10)),
+        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(vertical = 10.dp),
+        ) {
+            Box(
+                modifier =
+                    Modifier
+                        .width(100.dp)
+                        .height(40.dp)
+                        .background(shimmerBrush())
+                        .clip(RoundedCornerShape(5)),
+            )
+            Box(
+                modifier =
+                    Modifier
+                        .width(70.dp)
+                        .height(35.dp)
+                        .background(shimmerBrush())
+                        .clip(RoundedCornerShape(5)),
+            )
+        }
+        Box(
+            modifier =
+                Modifier.fillMaxWidth(.95f).height(2.dp).background(shimmerBrush()).clip(
+                    RoundedCornerShape(50),
+                ),
+        )
+
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceAround,
+        ) {
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.ic_back),
+                contentDescription = "prev-song",
+                tint =
+                    colorResource(
+                        id = R.color.white50,
+                    ),
+                modifier =
+                    Modifier
+                        .clip(CircleShape)
+                        .size(50.dp),
+            )
+            Icon(
+                imageVector = Icons.Default.PlayArrow,
+                contentDescription = "pause-song",
+                tint = Color.Black,
+                modifier =
+                    Modifier
+                        .size(50.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .padding(all = 5.dp),
+            )
+
+            Icon(
+                imageVector = ImageVector.vectorResource(R.drawable.ic_next),
+                contentDescription = "next-song",
+                tint =
+                    colorResource(
+                        id = R.color.white50,
+                    ),
+                modifier =
+                    Modifier
+                        .clip(CircleShape)
+                        .size(50.dp),
+            )
         }
     }
 
