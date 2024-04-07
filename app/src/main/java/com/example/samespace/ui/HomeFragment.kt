@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -58,6 +59,7 @@ class HomeFragment : Fragment() {
     ): View {
         _binding = FragmentHomeBinding.inflate(layoutInflater, container, false)
         setupViewPager()
+        setupPlayerView()
         return binding.root
     }
 
@@ -75,8 +77,6 @@ class HomeFragment : Fragment() {
                 1 -> tab.text = "Top Tracks"
             }
         }.attach()
-
-        setupPlayerView()
     }
 
     private fun setupPlayerView() {
@@ -84,112 +84,117 @@ class HomeFragment : Fragment() {
             binding.showPlayerView = (it != null)
         }
         binding.playerView.setContent {
-            Surface(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight(),
-                color = MaterialTheme.colorScheme.background,
-            ) {
-                val song by viewModel.currentlyPlaying.observeAsState(null)
-                val songIsPlaying by viewModel.isPlaying.observeAsState(true)
-                val colors =
-                    Color(
-                        android.graphics.Color.parseColor(
-                            song?.data?.accent ?: "#000000",
+            BottomPlayerView()
+        }
+    }
+
+    @Composable
+    fun BottomPlayerView() {
+        Surface(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+            color = MaterialTheme.colorScheme.background,
+        ) {
+            val song by viewModel.currentlyPlaying.observeAsState(null)
+            val isSongPlaying by viewModel.isPlaying.observeAsState(true)
+            val colors =
+                Color(
+                    android.graphics.Color.parseColor(
+                        song?.data?.accent ?: "#000000",
+                    ),
+                )
+            val gradient =
+                Brush.horizontalGradient(
+                    colors =
+                        listOf(
+                            colors.copy(alpha = .7f),
+                            colors.copy(alpha = .90f),
+                            colors,
                         ),
-                    )
-                val gradient =
-                    Brush.horizontalGradient(
-                        colors =
-                            listOf(
-                                colors.copy(alpha = .7f),
-                                colors.copy(alpha = .90f),
-                                colors,
-                            ),
-                    )
+                )
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier =
+                    Modifier.background(gradient).clickable {
+                        val fragment =
+                            SongPlayerFragment(isTopTracks = false, true)
+                        fragment.show(
+                            requireActivity().supportFragmentManager,
+                            "SongPlayerFragment",
+                        )
+                    }.padding(horizontal = 16.dp, vertical = 8.dp),
+            ) {
                 Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier =
-                        Modifier.background(gradient).clickable {
-                            val fragment =
-                                SongPlayerFragment(isTopTracks = false, true)
-                            fragment.show(
-                                requireActivity().supportFragmentManager,
-                                "SongPlayerFragment",
-                            )
-                        }.padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        val infiniteTransition = rememberInfiniteTransition(label = "rotate-anim")
-                        val angle by infiniteTransition.animateFloat(
-                            initialValue = 0F,
-                            targetValue = 360F,
-                            animationSpec =
-                                infiniteRepeatable(
-                                    animation = tween(2000, easing = LinearEasing),
-                                ),
-                            label = "rotate-angle",
-                        )
-                        AsyncImage(
-                            model = song?.data?.cover,
-                            contentDescription = "cover-image-current",
-                            modifier =
-                                Modifier
-                                    .then(
-                                        if (songIsPlaying) {
-                                            Modifier
-                                                .graphicsLayer {
-                                                    rotationZ = angle
-                                                }
-                                        } else {
-                                            Modifier
-                                        },
-                                    )
-                                    .size(45.dp)
-                                    .clip(
-                                        CircleShape,
-                                    ),
-                            contentScale = ContentScale.Crop,
-                        )
-                        Text(
-                            text = song?.data?.name ?: "",
-                            color = Color.White,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.W500,
-                        )
-                    }
-                    Icon(
-                        imageVector =
-                            if (songIsPlaying) {
-                                ImageVector.vectorResource(
-                                    R.drawable.ic_pause,
-                                )
-                            } else {
-                                Icons.Default.PlayArrow
-                            },
-                        contentDescription = "play-pause-song",
-                        tint = Color.Black,
+                    val infiniteTransition = rememberInfiniteTransition(label = "rotate-anim")
+                    val angle by infiniteTransition.animateFloat(
+                        initialValue = 0F,
+                        targetValue = 360F,
+                        animationSpec =
+                            infiniteRepeatable(
+                                animation = tween(2000, easing = LinearEasing),
+                            ),
+                        label = "rotate-angle",
+                    )
+                    AsyncImage(
+                        model = song?.data?.cover,
+                        contentDescription = "cover-image-current",
                         modifier =
                             Modifier
-                                .size(38.dp)
-                                .clip(CircleShape)
-                                .clickable {
-                                    if (songIsPlaying) {
-                                        (requireActivity().application as MyApp).exoPlayer.pause()
+                                .then(
+                                    if (isSongPlaying) {
+                                        Modifier
+                                            .graphicsLayer {
+                                                rotationZ = angle
+                                            }
                                     } else {
-                                        (requireActivity().application as MyApp).exoPlayer.play()
-                                    }
-                                    viewModel.setIsPlaying(!songIsPlaying)
-                                }
-                                .background(Color.White)
-                                .padding(all = 5.dp),
+                                        Modifier
+                                    },
+                                )
+                                .size(45.dp)
+                                .clip(
+                                    CircleShape,
+                                ),
+                        contentScale = ContentScale.Crop,
+                    )
+                    Text(
+                        text = song?.data?.name ?: "",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.W500,
                     )
                 }
+                Icon(
+                    imageVector =
+                        if (isSongPlaying) {
+                            ImageVector.vectorResource(
+                                R.drawable.ic_pause,
+                            )
+                        } else {
+                            Icons.Default.PlayArrow
+                        },
+                    contentDescription = "play-pause-song",
+                    tint = Color.Black,
+                    modifier =
+                        Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                if (isSongPlaying) {
+                                    (requireActivity().application as MyApp).exoPlayer.pause()
+                                } else {
+                                    (requireActivity().application as MyApp).exoPlayer.play()
+                                }
+                                viewModel.setIsPlaying(!isSongPlaying)
+                            }
+                            .background(Color.White)
+                            .padding(all = 5.dp),
+                )
             }
         }
     }
