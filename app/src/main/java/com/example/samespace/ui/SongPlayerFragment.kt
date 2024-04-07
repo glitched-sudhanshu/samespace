@@ -26,15 +26,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,6 +66,7 @@ import com.example.samespace.models.Resource
 import com.example.samespace.models.SongsList
 import com.example.samespace.shimmerBrush
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 class SongPlayerFragment(val isTopTracks: Boolean, private var fromBottom: Boolean) :
@@ -325,6 +331,13 @@ class SongPlayerFragment(val isTopTracks: Boolean, private var fromBottom: Boole
                 fontWeight = FontWeight.W400,
             )
         }
+        val trackColor =
+            Color(
+                android.graphics.Color.parseColor(
+                    songs?.get(songPointer)?.accent ?: "#000000",
+                ),
+            ).copy()
+        TrackSliderView()
         Row(
             modifier =
                 Modifier
@@ -391,5 +404,129 @@ class SongPlayerFragment(val isTopTracks: Boolean, private var fromBottom: Boole
                         .size(50.dp),
             )
         }
+    }
+
+    @Composable
+    fun TrackSliderView(trackColor: Color = Color.Black) {
+        val currentPosition =
+            remember {
+                mutableLongStateOf(0L)
+            }
+        val sliderPosition =
+            remember {
+                mutableLongStateOf(0L)
+            }
+        val totalDuration =
+            remember {
+                mutableLongStateOf(0L)
+            }
+
+        LaunchedEffect(
+            key1 = (requireActivity().application as MyApp).exoPlayer.currentPosition,
+            key2 = (requireActivity().application as MyApp).exoPlayer.isPlaying,
+        ) {
+            delay(1000)
+            currentPosition.longValue =
+                (requireActivity().application as MyApp).exoPlayer.currentPosition
+        }
+
+        LaunchedEffect(currentPosition.longValue) {
+            sliderPosition.longValue = currentPosition.longValue
+        }
+
+        LaunchedEffect((requireActivity().application as MyApp).exoPlayer.duration) {
+            if ((requireActivity().application as MyApp).exoPlayer.duration > 0) {
+                totalDuration.longValue =
+                    (requireActivity().application as MyApp).exoPlayer.duration
+            }
+        }
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
+        ) {
+            TrackSlider(
+                value = sliderPosition.longValue.toFloat(),
+                onValueChange = {
+                    sliderPosition.longValue = it.toLong()
+                },
+                onValueChangeFinished = {
+                    currentPosition.longValue = sliderPosition.longValue
+                    (requireActivity().application as MyApp).exoPlayer.seekTo(sliderPosition.longValue)
+                },
+                songDuration = totalDuration.longValue.toFloat(),
+                trackColor = trackColor,
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = (currentPosition.longValue).convertToText(),
+                    modifier =
+                        Modifier
+                            .weight(1f)
+                            .padding(8.dp),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                )
+                val remainTime = totalDuration.longValue - currentPosition.longValue
+                Text(
+                    text = if (remainTime >= 0) remainTime.convertToText() else "",
+                    modifier =
+                        Modifier
+                            .padding(8.dp),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+    }
+
+    private fun Long.convertToText(): String {
+        val sec = this / 1000
+        val minutes = sec / 60
+        val seconds = sec % 60
+        val minutesString =
+            if (minutes < 10) {
+                "0$minutes"
+            } else {
+                minutes.toString()
+            }
+        val secondsString =
+            if (seconds < 10) {
+                "0$seconds"
+            } else {
+                seconds.toString()
+            }
+        return "$minutesString:$secondsString"
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun TrackSlider(
+        value: Float,
+        onValueChange: (newValue: Float) -> Unit,
+        onValueChangeFinished: () -> Unit,
+        songDuration: Float,
+        trackColor: Color,
+    ) {
+        Slider(
+            value = value,
+            onValueChange = {
+                onValueChange(it)
+            },
+            thumb = {},
+            onValueChangeFinished = {
+                onValueChangeFinished()
+            },
+            valueRange = 0f..songDuration,
+            colors =
+                SliderDefaults.colors(
+                    thumbColor = trackColor,
+                    activeTrackColor = trackColor,
+                    inactiveTrackColor = colorResource(id = R.color.white50),
+                ),
+        )
     }
 }
