@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -120,14 +121,17 @@ class HomeFragment : Fragment() {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier =
-                    Modifier.background(gradient).clickable {
-                        val fragment =
-                            SongPlayerFragment(isTopTracks = false, true)
-                        fragment.show(
-                            requireActivity().supportFragmentManager,
-                            "SongPlayerFragment",
-                        )
-                    }.padding(horizontal = 16.dp, vertical = 8.dp),
+                    Modifier
+                        .background(gradient)
+                        .clickable {
+                            val fragment =
+                                SongPlayerFragment(isTopTracks = false, true)
+                            fragment.show(
+                                requireActivity().supportFragmentManager,
+                                "SongPlayerFragment",
+                            )
+                        }
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -144,8 +148,9 @@ class HomeFragment : Fragment() {
                         label = "rotate-angle",
                     )
                     AsyncImage(
-                        model = song?.data?.cover,
+                        model = "https://cms.samespace.com/assets/${song?.data?.cover}",
                         contentDescription = "cover-image-current",
+                        placeholder = painterResource(id = R.drawable.bg_gradient),
                         modifier =
                             Modifier
                                 .then(

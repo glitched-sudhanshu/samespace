@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.example.samespace.R
 import com.example.samespace.databinding.RvSongItemBinding
 import com.example.samespace.models.Song
 
@@ -51,7 +52,8 @@ class SongsListAdapter : RecyclerView.Adapter<SongsListAdapter.ViewHolder>() {
             tvTitle.text = song.name
             tvSinger.text = song.artist
             Glide.with(holder.itemView.context)
-                .load(song.cover)
+                .load("https://cms.samespace.com/assets/${song.cover}")
+                .placeholder(R.drawable.bg_gradient)
                 .centerCrop()
                 .apply(RequestOptions.circleCropTransform())
                 .into(ivSong)

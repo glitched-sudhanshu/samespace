@@ -52,6 +52,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -304,7 +305,8 @@ class SongPlayerFragment(val isTopTracks: Boolean, private var fromBottom: Boole
                         .padding(16.dp),
                 model =
                     ImageRequest.Builder(LocalContext.current)
-                        .data(songs?.get(index)?.cover).build(),
+                        .data("https://cms.samespace.com/assets/${songs?.get(index)?.cover}").build(),
+                placeholder = painterResource(id = R.drawable.bg_gradient),
                 contentDescription = "cover-image",
                 contentScale = ContentScale.Crop,
             )
@@ -331,12 +333,6 @@ class SongPlayerFragment(val isTopTracks: Boolean, private var fromBottom: Boole
                 fontWeight = FontWeight.W400,
             )
         }
-        val trackColor =
-            Color(
-                android.graphics.Color.parseColor(
-                    songs?.get(songPointer)?.accent ?: "#000000",
-                ),
-            ).copy()
         TrackSliderView()
         Row(
             modifier =
