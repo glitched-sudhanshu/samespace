@@ -1,10 +1,13 @@
 package com.example.samespace.ui
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.core.content.PermissionChecker
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -63,10 +68,24 @@ class SongsListFragment(private val isTopTrack: Boolean) : Fragment() {
                     position: Int,
                     song: Song,
                 ) {
-                    viewModel.setSongPosition(position = position, fromTopTrack = isTopTrack)
-                    val fragment =
-                        SongPlayerFragment(isTopTracks = isTopTrack, false)
-                    fragment.show(requireActivity().supportFragmentManager, "SongPlayerFragment")
+                    if (checkForPermission()) {
+                        viewModel.setSongPosition(
+                            position = position,
+                            fromTopTrack = isTopTrack,
+                        )
+                        val fragment =
+                            SongPlayerFragment(isTopTracks = isTopTrack, false)
+                        fragment.show(
+                            requireActivity().supportFragmentManager,
+                            "SongPlayerFragment",
+                        )
+                    } else {
+                        Toast.makeText(
+                            requireContext(),
+                            "Go to settings and grant notification permission",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }
                 }
             },
         )
@@ -80,6 +99,17 @@ class SongsListFragment(private val isTopTrack: Boolean) : Fragment() {
                 handleSongResponse(it)
             }
         }
+    }
+
+    private fun checkForPermission(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+        return (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) ==
+                PermissionChecker.PERMISSION_GRANTED
+        )
     }
 
     private fun handleSongResponse(response: Resource<SongsList>) {
